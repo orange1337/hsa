@@ -1,0 +1,47 @@
+services:
+  telegraf:
+    image: telegraf:1.28.3
+    container_name: telegraf
+    restart: on-failure
+    volumes:
+      - ./telegraf.conf:/etc/telegraf/telegraf.conf
+    depends_on:
+      - influxdb
+    networks:
+      - private_network
+      - bridge_network
+
+  influxdb:
+    image: influxdb:2.7.3
+    container_name: influxdb
+    restart: on-failure
+    volumes:
+      - ./.data/influxdb:/var/lib/influxdb2
+    environment:
+      - DOCKER_INFLUXDB_INIT_MODE=setup
+      - DOCKER_INFLUXDB_INIT_RETENTION=1w
+      - DOCKER_INFLUXDB_INIT_ORG=${DOCKER_INFLUXDB_INIT_ORG}
+      - DOCKER_INFLUXDB_INIT_BUCKET=${DOCKER_INFLUXDB_INIT_BUCKET}
+      - DOCKER_INFLUXDB_INIT_USERNAME=${DOCKER_INFLUXDB_INIT_USERNAME}
+      - DOCKER_INFLUXDB_INIT_PASSWORD=${DOCKER_INFLUXDB_INIT_PASSWORD}
+    networks:
+      - private_network
+      - bridge_network
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    container_name: grafana
+    restart: on-failure
+    ports:
+      - 3000:3000
+    volumes:
+      - ./.data/grafana:/var/lib/grafana
+    networks:
+      - private_network
+      - bridge_network
+      
+networks:
+  private_network:
+    driver: bridge
+  bridge_network:
+    external: true
