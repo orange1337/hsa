@@ -5,3 +5,5 @@ HSA homeworks
 ```bash
 $ mv monitoring/example.env monitoring/.env
 ```
+
+![example postgres](monitoring/postgres.png)
