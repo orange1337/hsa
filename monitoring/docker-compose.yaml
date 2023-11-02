@@ -7,23 +7,23 @@ services:
       - ./telegraf.conf:/etc/telegraf/telegraf.conf
     depends_on:
       - influxdb
+      - postgres
     networks:
       - private_network
       - bridge_network
 
   influxdb:
-    image: influxdb:2.7.3
+    image: influxdb:1.8
     container_name: influxdb
     restart: on-failure
     volumes:
-      - ./.data/influxdb:/var/lib/influxdb2
+      - ./.data/influxdb:/var/lib/influxdb
+    ports:
+      - 8086:8086
     environment:
-      - DOCKER_INFLUXDB_INIT_MODE=setup
-      - DOCKER_INFLUXDB_INIT_RETENTION=1w
-      - DOCKER_INFLUXDB_INIT_ORG=${DOCKER_INFLUXDB_INIT_ORG}
-      - DOCKER_INFLUXDB_INIT_BUCKET=${DOCKER_INFLUXDB_INIT_BUCKET}
-      - DOCKER_INFLUXDB_INIT_USERNAME=${DOCKER_INFLUXDB_INIT_USERNAME}
-      - DOCKER_INFLUXDB_INIT_PASSWORD=${DOCKER_INFLUXDB_INIT_PASSWORD}
+      - INFLUXDB_DB=influx
+      - INFLUXDB_ADMIN_USER=${INFLUXDB_ADMIN_USER}
+      - INFLUXDB_ADMIN_PASSWORD=${INFLUXDB_ADMIN_PASSWORD}
     networks:
       - private_network
       - bridge_network
@@ -36,6 +36,24 @@ services:
       - 3000:3000
     volumes:
       - ./.data/grafana:/var/lib/grafana
+      - ./grafana/provisioning/:/etc/grafana/provisioning/
+      - ./grafana/dashboards/:/var/lib/grafana/dashboards/
+    networks:
+      - private_network
+      - bridge_network
+
+  postgres:
+    image: postgres:15.2-alpine
+    container_name: postgres
+    restart: on-failure
+    ports:
+      - 5433:5432
+    volumes:
+      - ./.data/db:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: ${PG_DB_USERNAME}
+      POSTGRES_PASSWORD: ${PG_DB_PASSWORD}
+      POSTGRES_DB: ${PG_DB_NAME}
     networks:
       - private_network
       - bridge_network
